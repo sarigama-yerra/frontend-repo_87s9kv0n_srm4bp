@@ -5,13 +5,19 @@ import * as THREE from 'three'
 
 // Custom shader material for the neon wave field
 const WaveMaterial = shaderMaterial(
-  { uTime: 0, uColorA: new THREE.Color('#22d3ee'), uColorB: new THREE.Color('#a855f7') },
-  // Vertex shader
+  { uTime: 0, uColorA: new THREE.Color('#22d3ee'), uColorB: new THREE.Color('#a855f7'), uAmp: 0.22, uFreq: 2.6 },
+  // Vertex shader with subtle displacement
   `
+  uniform float uTime;
+  uniform float uAmp;
+  uniform float uFreq;
   varying vec2 vUv;
   void main(){
     vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    vec3 pos = position;
+    float wave = sin((pos.x + uTime) * 1.6 * uFreq) * cos((pos.y + uTime*0.8) * 1.2 * uFreq);
+    pos.z += wave * uAmp;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
   }
   `,
   // Fragment shader
@@ -33,12 +39,16 @@ extend({ WaveMaterial })
 
 function Waves() {
   const ref = useRef()
+  const mesh = useRef()
   useFrame((state, delta) => {
     if (ref.current) ref.current.uTime += delta
+    if (mesh.current) {
+      mesh.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.1) * 0.08
+    }
   })
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[6, 6, 64, 64]} />
+    <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]}> 
+      <planeGeometry args={[8, 8, 128, 128]} />
       {/* lowercase tag matches the extended key */}
       <waveMaterial ref={ref} transparent />
     </mesh>
@@ -49,14 +59,15 @@ export default function InnovationLab() {
   return (
     <section id="lab" className="relative bg-black text-white">
       <div className="h-[70vh] sm:h-[80vh]">
-        <Canvas camera={{ position: [0, 0, 6], fov: 60 }}>
+        <Canvas camera={{ position: [0, 0.5, 6], fov: 60 }}>
           <color attach="background" args={[0,0,0]} />
-          <ambientLight intensity={0.2} />
+          <ambientLight intensity={0.15} />
+          <directionalLight position={[3,4,2]} intensity={0.9} color={'#a78bfa'} />
           <Suspense fallback={null}>
             <Float speed={1.2}>
               <Waves />
             </Float>
-            <Sparkles size={2} count={80} speed={0.6} color={'#22d3ee'} scale={[8,8,8]} />
+            <Sparkles size={2} count={120} speed={0.7} color={'#22d3ee'} scale={[10,10,10]} />
           </Suspense>
           <OrbitControls enableZoom={false} />
         </Canvas>
