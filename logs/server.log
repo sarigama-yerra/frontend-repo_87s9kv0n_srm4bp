@@ -1,0 +1,13 @@
+
+> vibe-generated-app@1.0.0 dev
+> vite
+
+
+  VITE v5.4.20  ready in 203 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://172.20.88.1:3000/
+6:41:26 PM [vite] ✨ new dependencies optimized: gsap, gsap/ScrollTrigger
+6:41:26 PM [vite] ✨ optimized dependencies changed. reloading
+6:41:32 PM [vite] ✨ new dependencies optimized: @react-three/fiber, @react-three/drei, three
+6:41:32 PM [vite] ✨ optimized dependencies changed. reloading
