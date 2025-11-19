@@ -1,22 +1,45 @@
-import React, { Suspense, useMemo, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import React, { Suspense, useRef } from 'react'
+import { Canvas, useFrame, extend } from '@react-three/fiber'
 import { OrbitControls, shaderMaterial, Sparkles, Float } from '@react-three/drei'
 import * as THREE from 'three'
 
+// Custom shader material for the neon wave field
 const WaveMaterial = shaderMaterial(
   { uTime: 0, uColorA: new THREE.Color('#22d3ee'), uColorB: new THREE.Color('#a855f7') },
-  `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-  `uniform float uTime; uniform vec3 uColorA; uniform vec3 uColorB; varying vec2 vUv; void main(){ float n = sin(vUv.x*10.0 + uTime*1.5)*cos(vUv.y*10.0 + uTime*1.2); vec3 col = mix(uColorA,uColorB, n*0.5+0.5); gl_FragColor = vec4(col, 0.9); }`
+  // Vertex shader
+  `
+  varying vec2 vUv;
+  void main(){
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+  }
+  `,
+  // Fragment shader
+  `
+  uniform float uTime;
+  uniform vec3 uColorA;
+  uniform vec3 uColorB;
+  varying vec2 vUv;
+  void main(){
+    float n = sin(vUv.x*10.0 + uTime*1.5) * cos(vUv.y*10.0 + uTime*1.2);
+    vec3 col = mix(uColorA, uColorB, n*0.5 + 0.5);
+    gl_FragColor = vec4(col, 0.9);
+  }
+  `
 )
+
+// Register the custom material so it can be used as <waveMaterial /> in JSX
+extend({ WaveMaterial })
 
 function Waves() {
   const ref = useRef()
   useFrame((state, delta) => {
-    ref.current.uTime += delta
+    if (ref.current) ref.current.uTime += delta
   })
   return (
-    <mesh>
+    <mesh rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[6, 6, 64, 64]} />
+      {/* lowercase tag matches the extended key */}
       <waveMaterial ref={ref} transparent />
     </mesh>
   )
